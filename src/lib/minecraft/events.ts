@@ -82,27 +82,40 @@ export type PlayerEvent = ServerEvent<MinecraftEventType, { readonly player: Par
 export type PlayerJoin = PlayerEvent
 export type PlayerLeave = PlayerEvent
 
+export type PlayerEventStreams = {
+    readonly playerJoins$: MinecraftEventStream<PlayerJoin>;
+    readonly playerLeaves$: MinecraftEventStream<PlayerLeave>;
+}
+
 export type ServerEventStreams = {
-    readonly playerJoins: MinecraftEventStream<PlayerJoin>;
-    readonly playerLeaves: MinecraftEventStream<PlayerLeave>;
+    readonly playerStreams$: PlayerEventStreams
+}
+
+export type MinecraftEventDefiner = <T>(
+    type: MinecraftEventValue,
+    shape: MinecraftEventShaper<T>
+) => Observable<T>
+
+export const usePlayerEventStreams = (defineEvent: MinecraftEventDefiner) => {
+
+    const extractData = (v: MinecraftEvent) => ({ timestamp: v.line.timestamp, player: { name: v.data.name }})
+
+    const definePlayerEvent = (type: MinecraftEventType): Observable<PlayerEvent> => 
+        defineEvent<PlayerEvent>(type, v => Object.assign({type}, extractData(v)))
+
+    const playerLeaves$ = definePlayerEvent('playerLeave')
+    const playerJoins$ = definePlayerEvent('playerJoin')
+
+    return { playerLeaves$, playerJoins$ }
 }
 
 export const useServerEventStreams = (streamer: Streamer<MinecraftEvent>): ServerEventStreams => {
     const { matchMap$ } = streamer
 
-    const defineEvent = <T>(type: MinecraftEventValue, shape: StreamShaper<MinecraftEvent, T>) => matchMap$('type', type, shape)
+    const defineEvent = <T=MinecraftEvent<string>>(type: MinecraftEventValue, shape: MinecraftEventShaper<T>) => matchMap$('type', type, shape)
 
-    const definePlayerEvent = (type: MinecraftEventType) => defineEvent<PlayerEvent>(type, (v: MinecraftEvent<string>): PlayerEvent => {
-        return {
-            timestamp: v.line.timestamp,
-            type,
-            player: v.data as PlayerRef,
-        }
-    })
-
-    const playerLeaves = definePlayerEvent('playerLeave')
-    const playerJoins = definePlayerEvent('playerJoin')
+    const playerStreams$ = usePlayerEventStreams(defineEvent)
 
     
-    return {playerLeaves, playerJoins}
+    return { playerStreams$ }
 }
