@@ -1,5 +1,5 @@
-import { useWorld } from './lib';
+import { streamWorldDirectory$ } from './lib/minecraft/events/worlds';
 
 export * from './lib';
 
-export const mcrx = (rootDir?: string) => useWorld({rootDir: rootDir || '.'})
+export default streamWorldDirectory$

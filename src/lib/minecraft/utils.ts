@@ -1,19 +1,11 @@
-import { join } from 'node:path'
-import { Observable } from 'rxjs'
-
-import { MinecraftEvent, useEventsStream } from './events/utils'
-import { PlayerEvent, usePlayerEventStreams } from './events/players'
-import { ServerEvent, useServerEventStreams } from './events/servers'
-import { useLogsStream } from './events/logs'
-
-export const createContext = (rootDir: string) => {
+/* export const createContext = (rootDir: string) => {
     const {logsStream$: logs$} = useLogsStream(join(rootDir, './logs/latest.log'))
 
     const eventStreamer = useEventsStream(logs$)
     const {stream$: events$} = eventStreamer
     
     const serverEvents = useServerEventStreams(eventStreamer)
-    const playerEvents = usePlayerEventStreams(eventStreamer)
+    const playerEvents = usePlayerEventStream$(eventStreamer)
 
     return {logs$, events$, serverEvents, playerEvents}
 }
@@ -29,17 +21,30 @@ export const useWorld = (options: UseWorld) => {
 
     const playerJoined = when$<PlayerEvent>(ctx.playerEvents.join$)
     const playerLeft = when$<PlayerEvent>(ctx.playerEvents.leave$)
+    
+    const playerConnected = when$<PlayerEvent>(ctx.playerEvents)
 
     const serverStarted = when$<ServerEvent>(ctx.serverEvents.start$)
     const serverStopped = when$<ServerEvent>(ctx.serverEvents.stop$)
     const serverCrashed = when$<ServerEvent>(ctx.serverEvents.crash$)
 
-    return {
+    return Object.assign(ctx, {
         on$,
-        playerJoined,
-        playerLeft,
-        serverStarted,
-        serverStopped,
-        serverCrashed,
-    }
+        when$,
+        events: {
+            playerJoined,
+            playerLeft,
+            serverStarted,
+            serverStopped,
+            serverCrashed,
+        }
+    })
 }
+
+export const streamMinecraftWorld$ = (options: Partial<{readonly rootDir: string}>) => {
+    const {rawStream} = buildLogStreams(join(options.rootDir || resolve('.'), 'logs', 'latest.log'))
+    const {logsStream} = stream
+    const loggedEventStreamer = streamLoggedEvents$(rawStream)
+} */
+
+export const foobar = () => console.log(`foo: ${'bar'}`)

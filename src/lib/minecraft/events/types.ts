@@ -1,4 +1,4 @@
-import { Observable } from "rxjs"
+import { map, Observable } from "rxjs"
 import { RequireAtLeastOne } from "type-fest"
 
 import { Streamer, StreamFilter, StreamShaper } from "../../common"
@@ -19,6 +19,8 @@ export type LogLine = {
     readonly content: string;
 }
 
+export type LogLine$ = Observable<LogLine>
+
 export type MiscEventType = 'raw'
 export type ChatEventType = 'receiveMessage'
 export type PlayerEventType = 'playerEvent' | 'playerJoin' | 'playerLeave' | 'playerConnect' | 'playerDisconnect'
@@ -26,11 +28,13 @@ export type ServerEventType = 'serverStart' | 'serverStop' | 'serverCrash'
 
 export type MinecraftEventType = MiscEventType | ChatEventType | PlayerEventType | ServerEventType
 
-export type MinecraftEvent<T=string> = {
+export type MinecraftEvent = {
     readonly line: LogLine;
     readonly type: MinecraftEventType;
-    readonly data: Record<string, T>
+    readonly data: Record<string, string>
 }
+
+export type MinecraftEvent$ = Observable<MinecraftEvent>
 
 export type MinecraftEventDefinition = {
     readonly type: MinecraftEventType;
@@ -45,28 +49,26 @@ export type MinecraftEventShaper<T> = StreamShaper<MinecraftEvent, T>
 export type MinecraftEventStream<T = MinecraftEvent> = Observable<T>
 export type MinecraftEventStreamer<T = MinecraftEvent> = Streamer<T>
 
-export type LoggedEvent<T extends MinecraftEventType, S=undefined> = {
+export type LoggedEvent<T=undefined> = {
     readonly timestamp: string;
-    readonly type?: T;
-} & S
+} & T
 
 export type ServerRef = {
     readonly id: string;
     readonly path: string;
 }
 
-export type ServerEvent = LoggedEvent<MinecraftEventType, {
-    readonly server: RequireAtLeastOne<ServerRef>;
-}>
-export type ServerStart = ServerEvent
-export type ServerStop = ServerEvent
-export type ServerCrash = ServerEvent
+export type ServerEventData = {
+    readonly server: Partial<ServerRef>
+}
+
+export type ServerEvent = LoggedEvent<ServerEventData>
+export type ServerEvent$ = Observable<ServerEvent>
 
 export type ServerEventStreams = {
-    readonly defineEvent$: ()
-    readonly start$: Observable<ServerStart>
-    readonly stop$: Observable<ServerStop>
-    readonly crash$: Observable<ServerCrash>
+    readonly serverStarted$: ServerEvent$
+    readonly serverStopped$: ServerEvent$
+    readonly serverCrashed$: ServerEvent$
 }
 
 export type PlayerRef = {
@@ -83,18 +85,12 @@ export type PlayerEventData = {
     readonly player: RequireAtLeastOne<PlayerRef> 
 }
 
-export type PlayerEvent<T extends PlayerEventType> = LoggedEvent<T, PlayerEventData>
-
-export type PlayerJoin = PlayerEvent<'playerJoin'>
-export type PlayerLeave = PlayerEvent<'playerLeave'>
-
-export type PlayerEvent$<S extends PlayerEventType, T extends PlayerEvent<S>> = Observable<T>
-
-export type PlayerJoined$ = PlayerEvent$<'playerJoin', PlayerJoin>
-export type PlayerLeft$ = PlayerEvent$<'playerLeave', PlayerLeave>
+export type PlayerEvent = LoggedEvent<PlayerEventData>
+export type PlayerEvent$ = Observable<PlayerEvent>
 
 export type PlayerEventStreams = {
-    readonly defineEvent$: <S extends PlayerEventType, T extends PlayerEvent<S>>(type: PlayerEventType) => Observable<T>;
-    readonly playerJoined$: PlayerJoined$;
-    readonly playerLeft$: PlayerLeft$;
+    readonly playerConnected$: PlayerEvent$;
+    readonly playerDisconnected$: PlayerEvent$;
+    readonly playerJoined$: PlayerEvent$;
+    readonly playerLeft$: PlayerEvent$;
 }

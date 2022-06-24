@@ -2,6 +2,8 @@ import { map } from "rxjs";
 
 import { file$ } from "../../common/files";
 
+import { LogLevel, LogLine, RawLogLine } from "./types";
+
 export const serverLogRegex = /\[(.*)\] \[(.*)\/(.*)\]: (.*)/m
 
 export const parseLog = (value: RawLogLine): LogLine => {
@@ -19,10 +21,12 @@ export const parseLog = (value: RawLogLine): LogLine => {
     }
   }
 
-export const useLogsStream = (path: string) => {
+export const buildLogStreams$ = (path: string) => {
     const {rawStream} = file$(path)
 
     const logsStream$ = rawStream.pipe(map(v => parseLog(v)))
     
-    return {logsStream$}
+    return {rawStream, logsStream$}
 }
+
+export const streamLogs$ = (path: string) => buildLogStreams$(path).logsStream$

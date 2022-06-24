@@ -1,33 +1,36 @@
-import { Observable } from "rxjs";
-
+/* eslint-disable functional/no-this-expression */
+/* eslint-disable functional/no-class */
 import {
     MinecraftEventStreamer,
-    MinecraftEventType,
     PlayerEvent,
+    PlayerEvent$,
+    PlayerEventStreams,
     PlayerEventType,
-    PlayerJoin,
-    PlayerLeave
 } from "./types";
+import { StreamsBuilder } from "./utils";
 
-export const definePlayerEvent$ = <S extends PlayerEventType, T extends PlayerEvent<S>>(type: MinecraftEventType, streamer: MinecraftEventStreamer): Observable<T> => 
-    streamer.matchMap$('type', type, v => ({
-        type,
-        timestamp: v.line.timestamp,
-        player: {
-            name: v.data.name 
-        }
-    } as T))
+export const playerJoined$Key = 'playerJoined$'
+export const playerLeft$Key = 'playerLeft$'
+export const playerConnected$Key = 'playerConnected$'
+export const playerDisconnected$Key = 'playerDisconnected$'
 
-export const usePlayerEventStream$ = (streamer: MinecraftEventStreamer): PlayerEventStreams => {
+export class PlayerStreamsBuilder<O=PlayerEventStreams> extends StreamsBuilder<PlayerEventType, PlayerEvent$, O> {
+    defineEvent (type: PlayerEventType, key: string) {
+        const result = this.streamer.matchMap$<PlayerEvent>('type', type, v => ({
+            timestamp: v.line.timestamp,
+            player: {
+                name: v.data.name 
+            }
+        } as PlayerEvent))
 
-    const defineEvent$ = <S extends PlayerEventType, T extends PlayerEvent<S>>(type: MinecraftEventType) => definePlayerEvent$<S, T>(type, streamer)
-
-    const playerJoined$ = defineEvent$<'playerJoin', PlayerJoin>('playerJoin')
-    const playerLeft$ = defineEvent$<'playerLeave', PlayerLeave>('playerLeave')
-
-    return {
-        defineEvent$,
-        playerJoined$,
-        playerLeft$
+        return this.with(key, result)
     }
 }
+
+export const buildPlayerStreams$ = (streamer: MinecraftEventStreamer): PlayerEventStreams => 
+    new PlayerStreamsBuilder<PlayerEventStreams>(streamer)
+        .add('playerConnect', playerConnected$Key)
+        .add('playerDisconnect', playerDisconnected$Key)
+        .add('playerJoin', playerJoined$Key)
+        .add('playerLeave', playerLeft$Key)
+        .done()

@@ -1,27 +1,33 @@
+/* eslint-disable functional/no-this-expression */
+/* eslint-disable functional/no-class */
 import { Streamer } from "../../common"
 
 import {
     MinecraftEvent,
-    MinecraftEventStreamer,
-    MinecraftEventType,
-    ServerCrash,
     ServerEvent,
+    ServerEvent$,
     ServerEventStreams,
-    ServerStart,
-    ServerStop
+    ServerEventType,
 } from "./types"
+import { StreamsBuilder } from "./utils"
 
-export const defineServerEvent$ = <T extends ServerEvent>(type: MinecraftEventType, streamer: MinecraftEventStreamer) => 
-    streamer.matchMap$('type', type, v => ({timestamp: v.line.timestamp} as T))
+export const serverStarted$Key = 'serverStarted$'
+export const serverStopped$Key = 'serverStopped$'
+export const serverCrashed$Key = 'serverCrashed$'
 
-export const createServerEventStream$ = (streamer: Streamer<MinecraftEvent>): ServerEventStreams => {
+export class ServerStreamsBuilder<O=ServerEventStreams> extends StreamsBuilder<ServerEventType, ServerEvent$, O> {
+    defineEvent (type: ServerEventType, key: string) {
+        const result = this.streamer.matchMap$<ServerEvent>('type', type,
+            v => ({timestamp: v.line.timestamp} as ServerEvent)
+        )
 
-    const defineEvent$ = <T extends ServerEvent>(type: MinecraftEventType) => defineServerEvent$<T>(type, streamer)
-
-    return {
-        defineEvent$,
-        start$: defineEvent$<ServerStart>('serverStart'),
-        stop$: defineEvent$<ServerStop>('serverStop'),
-        crash$: defineEvent$<ServerCrash>('serverCrash'),
+        return this.with(key, result)
     }
 }
+
+export const buildServerStreams$ = (streamer: Streamer<MinecraftEvent>): ServerEventStreams => 
+    new ServerStreamsBuilder(streamer)
+        .add('serverStart', serverStarted$Key)
+        .add('serverStop', serverStopped$Key)
+        .add('serverCrash', serverCrashed$Key)
+        .done()

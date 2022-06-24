@@ -1,11 +1,10 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-loop-statement */
-import { Observable } from "rxjs";
 
-export const MINECRAFT_EVENTS = new Map<RegExp, MinecraftEventDefinition>([
-    [/(.*) joined the game/, { type: 'playerJoin', args: ['name'] }],
-    [/(.*) left the game/, { type: 'playerLeave', args: ['name'] }],
-])
+import { useStream } from "../../common";
+
+import { MINECRAFT_EVENTS } from "./constants";
+import { LogLine, LogLine$, MinecraftEvent } from "./types";
 
 export const mapMinecraftEventData = (groups: readonly string[], keys: readonly string[]) => {
     const result: Record<string, string> = {}
@@ -33,4 +32,8 @@ export const parseMinecraftEvent = (line: LogLine): MinecraftEvent => {
     return { line, type: 'raw', data: {}}
 }
 
-export const streamMinecraftEvents = (logsStream: Observable<LogLine>) => useStream<MinecraftEvent, LogLine>(logsStream, parseMinecraftEvent)
+export const streamLoggedEvents$ = (source: LogLine$) => {
+    const transform$ = useStream<MinecraftEvent, LogLine>
+
+    return transform$(source, parseMinecraftEvent)
+}
