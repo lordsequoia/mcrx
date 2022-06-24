@@ -1,4 +1,4 @@
-import { map, Observable } from "rxjs"
+import { Observable } from "rxjs"
 import { RequireAtLeastOne } from "type-fest"
 
 import { Streamer, StreamFilter, StreamShaper } from "../../common"
