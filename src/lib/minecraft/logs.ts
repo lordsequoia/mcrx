@@ -1,5 +1,6 @@
 import { map } from "rxjs";
-import { file$ } from "../common/utils";
+
+import { file$ } from "../common/files";
 
 export type RawLogLine = string
 
@@ -34,10 +35,10 @@ export const parseLog = (value: RawLogLine): LogLine => {
     }
   }
 
-export const streamLogs = (path: string) => {
+export const useLogsStream = (path: string) => {
     const {rawStream} = file$(path)
 
-    const logsStream = rawStream.pipe(map(v => parseLog(v)))
+    const logsStream$ = rawStream.pipe(map(v => parseLog(v)))
     
-    return {logsStream}
+    return {logsStream$}
 }
