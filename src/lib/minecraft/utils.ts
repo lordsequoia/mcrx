@@ -3,7 +3,7 @@ import { Observable } from 'rxjs'
 
 import { MinecraftEvent, useEventsStream } from './events'
 import { PlayerEvent, usePlayerEventStreams } from './events/players'
-import { useServerEventStreams } from './events/servers'
+import { ServerEvent, useServerEventStreams } from './events/servers'
 import { useLogsStream } from './logs'
 
 export const createContext = (rootDir: string) => {
@@ -24,13 +24,22 @@ export type UseWorld = {
 export const useWorld = (options: UseWorld) => {
     const ctx = createContext(options.rootDir)
 
-    const on$ = <T>(event: Observable<T>, callback: (v: T) => void | Promise<void>) => event.subscribe(v => callback(v))
+    const on$ = <T>(event: Observable<T>, callback: (v: T) => unknown) => event.subscribe(v => callback(v))
+    const when$ = <T>(event: Observable<T>) => (callback: (v: T) => unknown) => on$(event, callback) 
 
+    const playerJoined = when$<PlayerEvent>(ctx.playerEvents.join$)
+    const playerLeft = when$<PlayerEvent>(ctx.playerEvents.leave$)
 
-    const playerJoined$ = (callback: (event: PlayerEvent) => void | Promise<void>) => on$(ctx.playerEvents.join$, callback)
+    const serverStarted = when$<ServerEvent>(ctx.serverEvents.start$)
+    const serverStopped = when$<ServerEvent>(ctx.serverEvents.stop$)
+    const serverCrashed = when$<ServerEvent>(ctx.serverEvents.crash$)
 
     return {
         on$,
-        playerJoined$,
+        playerJoined,
+        playerLeft,
+        serverStarted,
+        serverStopped,
+        serverCrashed,
     }
 }
