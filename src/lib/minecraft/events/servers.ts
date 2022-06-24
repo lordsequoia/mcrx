@@ -1,31 +1,27 @@
-import { Observable } from "rxjs"
-
 import { Streamer } from "../../common"
 
-import { LoggedEvent, MinecraftEvent, MinecraftEventType } from "."
+import {
+    MinecraftEvent,
+    MinecraftEventStreamer,
+    MinecraftEventType,
+    ServerCrash,
+    ServerEvent,
+    ServerEventStreams,
+    ServerStart,
+    ServerStop
+} from "./types"
 
-export type ServerEvent = LoggedEvent<MinecraftEventType>
-export type ServerStart = ServerEvent
-export type ServerStop = ServerEvent
-export type ServerCrash = ServerEvent
+export const defineServerEvent$ = <T extends ServerEvent>(type: MinecraftEventType, streamer: MinecraftEventStreamer) => 
+    streamer.matchMap$('type', type, v => ({timestamp: v.line.timestamp} as T))
 
-export type ServerEventStreams = {
-    readonly start$: Observable<ServerStart>
-    readonly stop$: Observable<ServerStop>
-    readonly crash$: Observable<ServerCrash>
-}
+export const createServerEventStream$ = (streamer: Streamer<MinecraftEvent>): ServerEventStreams => {
 
-
-export const useServerEventStreams = (streamer: Streamer<MinecraftEvent>): {
-    readonly start$: Observable<ServerStart>
-    readonly stop$: Observable<ServerStop>
-    readonly crash$: Observable<ServerCrash>
-} => {
-    const defineServerEvent = (type: MinecraftEventType) => streamer.matchMap$('type', type, v => ({timestamp: v.line.timestamp}))
+    const defineEvent$ = <T extends ServerEvent>(type: MinecraftEventType) => defineServerEvent$<T>(type, streamer)
 
     return {
-        start$: defineServerEvent('serverStart') as Observable<ServerStart>,
-        stop$: defineServerEvent('serverStop') as Observable<ServerStop>,
-        crash$: defineServerEvent('serverCrash') as Observable<ServerCrash>,
+        defineEvent$,
+        start$: defineEvent$<ServerStart>('serverStart'),
+        stop$: defineEvent$<ServerStop>('serverStop'),
+        crash$: defineEvent$<ServerCrash>('serverCrash'),
     }
 }

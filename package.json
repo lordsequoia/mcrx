@@ -44,7 +44,8 @@
   "dependencies": {
     "@bitauth/libauth": "^1.17.1",
     "rxjs": "^7.5.5",
-    "tail": "^2.2.4"
+    "tail": "^2.2.4",
+    "type-fest": "^2.14.0"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",

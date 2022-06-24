@@ -1,10 +1,10 @@
 import { join } from 'node:path'
 import { Observable } from 'rxjs'
 
-import { MinecraftEvent, useEventsStream } from './events'
+import { MinecraftEvent, useEventsStream } from './events/utils'
 import { PlayerEvent, usePlayerEventStreams } from './events/players'
 import { ServerEvent, useServerEventStreams } from './events/servers'
-import { useLogsStream } from './logs'
+import { useLogsStream } from './events/logs'
 
 export const createContext = (rootDir: string) => {
     const {logsStream$: logs$} = useLogsStream(join(rootDir, './logs/latest.log'))
