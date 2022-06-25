@@ -1,3 +1,4 @@
+import {v4 as uuidv4, v5 as uuidv5 } from 'uuid'
 /**
  * A sample async function (to demo Typescript's es7 async/await down-leveling).
  *
@@ -83,3 +84,5 @@
      */
     return base ** exponent;
   };
+
+  export const createUuid = (from?: string): string => typeof from === undefined ? uuidv4() : uuidv5(from, uuidv5.URL)

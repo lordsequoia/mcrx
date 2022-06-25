@@ -1,7 +1,8 @@
 import { Observable } from "rxjs"
-import { RequireAtLeastOne } from "type-fest"
+import { RequireAtLeastOne, SetRequired } from "type-fest"
 
 import { Streamer, StreamFilter, StreamShaper } from "../../common"
+import { ChatMessage } from "../models/chat"
 
 export type RawLogLine = string
 
@@ -13,6 +14,7 @@ export type LogLevel =
     | 'WARN'
 
 export type LogLine = {
+    readonly id: string;
     readonly timestamp: LogTimestamp;
     readonly channel: string;
     readonly level: LogLevel;
@@ -21,10 +23,24 @@ export type LogLine = {
 
 export type LogLine$ = Observable<LogLine>
 
-export type MiscEventType = 'raw'
-export type ChatEventType = 'receiveMessage'
-export type PlayerEventType = 'playerEvent' | 'playerJoin' | 'playerLeave' | 'playerConnect' | 'playerDisconnect'
-export type ServerEventType = 'serverStart' | 'serverStop' | 'serverCrash'
+export type MiscEventType = 
+    | 'raw'
+
+export type ChatEventType = 
+    | 'messageSent'
+
+export type PlayerEventType = 
+    | 'playerEvent' 
+    | 'playerJoin' 
+    | 'playerLeave' 
+    | 'playerConnect'
+    | 'playerDisconnect'
+    | 'playerDeath'
+
+export type ServerEventType = 
+    | 'serverStart' 
+    | 'serverStop' 
+    | 'serverCrash'
 
 export type MinecraftEventType = MiscEventType | ChatEventType | PlayerEventType | ServerEventType
 
@@ -93,4 +109,15 @@ export type PlayerEventStreams = {
     readonly playerDisconnected$: PlayerEvent$;
     readonly playerJoined$: PlayerEvent$;
     readonly playerLeft$: PlayerEvent$;
+}
+
+export type ChatMessageEventData = {
+    readonly message: SetRequired<Record<keyof ChatMessage, ChatMessage[keyof ChatMessage]>, 'id' | 'timestamp' | 'author' | 'content'>
+}
+
+export type ChatEvent = LoggedEvent<ChatMessageEventData>
+export type ChatEvent$ = Observable<ChatEvent>
+
+export type ChatEventStreams = {
+    readonly messageSent$: ChatEvent$;
 }

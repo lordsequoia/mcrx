@@ -13,6 +13,7 @@ export const playerJoined$Key = 'playerJoined$'
 export const playerLeft$Key = 'playerLeft$'
 export const playerConnected$Key = 'playerConnected$'
 export const playerDisconnected$Key = 'playerDisconnected$'
+export const playerDied$Key = 'playerDied$'
 
 export class PlayerStreamsBuilder<O=PlayerEventStreams> extends StreamsBuilder<PlayerEventType, PlayerEvent$, O> {
     defineEvent (type: PlayerEventType, key: string) {
@@ -33,4 +34,5 @@ export const buildPlayerStreams$ = (streamer: MinecraftEventStreamer): PlayerEve
         .add('playerDisconnect', playerDisconnected$Key)
         .add('playerJoin', playerJoined$Key)
         .add('playerLeave', playerLeft$Key)
+        .add('playerDeath', playerDied$Key)
         .done()

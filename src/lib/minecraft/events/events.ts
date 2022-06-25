@@ -9,8 +9,9 @@ import { LogLine, LogLine$, MinecraftEvent } from "./types";
 export const mapMinecraftEventData = (groups: readonly string[], keys: readonly string[]) => {
     const result: Record<string, string> = {}
 
-    for (const [key, index] of keys) {
-        result[key] = `${groups[index]}`
+    for (const idx of keys.keys()) {
+        const key = keys[idx]
+        result[key] = `${groups[idx]}`
     }
     
     return result
@@ -20,11 +21,11 @@ export const parseMinecraftEvent = (line: LogLine): MinecraftEvent => {
     for (const [pattern, definition] of MINECRAFT_EVENTS) {
         const result = pattern.exec(line.content)
 
-        if (result !== undefined && result !== null && result.length === definition.args.length) {
+        if (result !== undefined && result !== null) {
             return {
                 line,
                 type: definition.type,
-                data: mapMinecraftEventData(result, definition.args)
+                data: mapMinecraftEventData(result.slice(1, result.length), definition.args)
             }
         }
     }

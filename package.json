@@ -5,7 +5,7 @@
   "main": "build/main/index.js",
   "typings": "build/main/index.d.ts",
   "module": "build/module/index.js",
-  "repository": "https://github.com/YOUR_GITHUB_USER_NAME/mcrx",
+  "repository": "https://github.com/lordsequoia/mcrx",
   "license": "MIT",
   "keywords": [],
   "scripts": {
@@ -48,11 +48,14 @@
     "@bitauth/libauth": "^1.17.1",
     "rxjs": "^7.5.5",
     "tail": "^2.2.4",
-    "type-fest": "^2.14.0"
+    "type-fest": "^2.14.0",
+    "uuid": "^8.3.2",
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
     "@ava/typescript": "^1.1.1",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/uuid": "^8.3.4",
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "ava": "^3.12.1",
